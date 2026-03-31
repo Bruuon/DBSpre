@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>芝加哥犯罪数据分析平台</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+<body>
+
+<div class="header">
+    <h1 style="margin: 0;">芝加哥犯罪数据分析平台</h1>
+</div>
+
+<div class="nav-tabs">
+    <div class="nav-tab active" data-view="trend">年度演变趋势 (折线图)</div>
+    <div class="nav-tab" data-view="weekly">一周分布规律 (柱状图)</div>
+</div>
+
+<div class="main-content">
+    <div class="controls">
+        <label for="crime-type-select"><strong>聚焦特定犯罪类型：</strong></label>
+        <select id="crime-type-select">
+            <option value="ALL">全部犯罪总数 (ALL)</option>
+            <option value="THEFT">盗窃 (THEFT)</option>
+            <option value="BATTERY">殴打/人身攻击 (BATTERY)</option>
+            <option value="CRIMINAL DAMAGE">刑事破坏 (CRIMINAL DAMAGE)</option>
+            <option value="NARCOTICS">毒品犯罪 (NARCOTICS)</option>
+        </select>
+    </div>
+
+    <h3 id="chart-title">数据初始化中...</h3>
+    <div class="chart-container">
+        <div class="loading" id="loading-spinner">数据查询中，请稍候...</div>
+        <div id="chart-area"></div>
+    </div>
+</div>
+
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
