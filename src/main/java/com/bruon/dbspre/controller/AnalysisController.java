@@ -1,8 +1,10 @@
 package com.bruon.dbspre.controller;
 
-import com.bruon.dbspre.dto.CrimeTrendDTO;
 import com.bruon.dbspre.dao.CrimeDAO;
+import com.bruon.dbspre.dto.CrimeTrendDTO;
 import com.bruon.dbspre.dto.CrimeWeeklyDTO;
+import com.bruon.dbspre.dto.CrimeHourlyDTO;
+import com.bruon.dbspre.dto.HeatmapDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -62,6 +64,57 @@ public class AnalysisController {
         } catch (Exception e) {
             response.put("status", "error");
             response.put("message", "数据查询失败：" + e.getMessage());
+        }
+        return response;
+    }
+
+    @GetMapping("/hourly")
+    public Map<String, Object> getHourlyDistribution(
+            @RequestParam(value = "type", required = false, defaultValue = "ALL") String type) {
+
+        Map<String, Object> response = new HashMap<>();
+        try {
+            List<CrimeHourlyDTO> data = crimeDAO.getHourlyDistribution(type);
+            response.put("status", "success");
+            response.put("data", data);
+            response.put("currentType", type);
+        } catch (Exception e) {
+            response.put("status", "error");
+            response.put("message", "数据查询失败：" + e.getMessage());
+        }
+        return response;
+    }
+
+    /**
+     * 接口 4：获取空间分布热力图数据
+     * 访问路径示例：GET /api/analysis/heatmap?type=THEFT
+     */
+    @GetMapping("/heatmap")
+    public Map<String, Object> getCrimeHeatmap(
+            @RequestParam(value = "type", required = false, defaultValue = "ALL") String type) {
+
+        Map<String, Object> response = new HashMap<>();
+        try {
+            List<HeatmapDTO> data = crimeDAO.getCrimeHeatmap(type);
+            response.put("status", "success");
+            response.put("data", data);
+            response.put("currentType", type);
+        } catch (Exception e) {
+            response.put("status", "error");
+            response.put("message", "数据查询失败：" + e.getMessage());
+        }
+        return response;
+    }
+
+    @GetMapping("/arrest-rate")
+    public Map<String, Object> getArrestRateRanking() {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            response.put("status", "success");
+            response.put("data", crimeDAO.getArrestRateRanking());
+        } catch (Exception e) {
+            response.put("status", "error");
+            response.put("message", e.getMessage());
         }
         return response;
     }

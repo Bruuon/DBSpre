@@ -1,13 +1,12 @@
 // js/api.js
 
-/**
- * 获取犯罪数据
- * @param {string} view - 当前视图 ('trend' 或 'weekly')
- * @param {string} type - 犯罪类型 (例如 'ALL', 'THEFT')
- * @returns {Promise<Array>} 返回解析后的数据数组
- */
 export async function fetchCrimeData(view, type) {
-    const endpoint = view === 'trend' ? '/api/analysis/trend' : '/api/analysis/weekly';
+    // 根据 view 动态决定路由
+    let endpoint = '/api/analysis/trend';
+    if (view === 'weekly') endpoint = '/api/analysis/weekly';
+    if (view === 'hourly') endpoint = '/api/analysis/hourly';
+    if (view === 'heatmap') endpoint = '/api/analysis/heatmap'; // 新增热力图路由
+    if (view === 'arrest') endpoint = '/api/analysis/arrest-rate'; // 新增
 
     try {
         const response = await fetch(`${endpoint}?type=${type}`);
@@ -21,6 +20,6 @@ export async function fetchCrimeData(view, type) {
         }
     } catch (error) {
         console.error('网络请求错误:', error);
-        return []; // 发生错误时返回空数组，避免阻塞程序
+        return [];
     }
 }

@@ -8,6 +8,7 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; 
 .controls { margin-bottom: 20px; padding: 15px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); width: fit-content; }
 select { padding: 8px 12px; font-size: 16px; border: 1px solid #ccc; border-radius: 4px; outline: none; cursor: pointer; }
 .chart-container { background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: fit-content; position: relative;}
+.tooltip { position: absolute; background: rgba(0,0,0,0.8); color: white; padding: 8px; border-radius: 4px; pointer-events: none; opacity: 0; font-size: 12px; }
 
 /* SVG 样式 */
 .line { fill: none; stroke: #e74c3c; stroke-width: 3px; stroke-linejoin: round; stroke-linecap: round; }

@@ -2,9 +2,13 @@
 import { fetchCrimeData } from './api.js';
 import { initTrendChart, updateTrendChart } from './charts/trendChart.js';
 import { initWeeklyChart, updateWeeklyChart } from './charts/weeklyChart.js';
+import { initHourlyChart, updateHourlyChart } from './charts/hourlyChart.js'; // 引入新模块
+import { initHeatmapChart, updateHeatmapChart } from './charts/heatmapChart.js'; // 新增
+import {initArrestChart, updateArrestChart } from "./charts/arrestChart.js";
 
 // 全局状态管理
 let currentView = 'trend';
+let cachedArrestData = null; // 【优化 1】新增全局缓存变量
 
 // 统一的视图渲染调度器
 async function renderCurrentView() {
@@ -13,27 +17,44 @@ async function renderCurrentView() {
     const loadingSpinner = document.getElementById("loading-spinner");
     const titleObj = document.getElementById("chart-title");
 
-    // 更新标题并显示加载状态
-    titleObj.innerText = currentView === 'trend'
-        ? `1. 历年犯罪数量演变趋势 (${selectedType})`
-        : `2. 一周内犯罪高发规律 (${selectedType})`;
+    // 动态生成标题
+    const titleMap = {
+        'trend': `1. 历年犯罪数量演变趋势 (${selectedType})`,
+        'weekly': `2. 一周内犯罪高发规律 (${selectedType})`,
+        'hourly': `3. 一天 24 小时犯罪时段分布 (${selectedType})`,
+        'heatmap': `4. 芝加哥地区犯罪分布热力图 (${selectedType})`,
+        'arrest': `5. 不同类型犯罪逮捕率排名 (全局对比)`
+    };
+    titleObj.innerText = titleMap[currentView];
 
-    chartArea.style.opacity = 0.3;
-    loadingSpinner.style.display = "block";
+    let data;
 
-    // 拉取数据
-    const data = await fetchCrimeData(currentView, selectedType);
+    // 核心逻辑：获取数据
+    if (currentView === 'arrest') {
+        if (!cachedArrestData) {
+            // 只有首次加载时显示 Loading 并发起网络请求
+            chartArea.style.opacity = 0.3;
+            loadingSpinner.style.display = "block";
+            cachedArrestData = await fetchCrimeData('arrest', 'ALL');
+        }
+        data = cachedArrestData; // 使用缓存
+    } else {
+        // 其他视图：每次都显示 Loading 并发起网络请求
+        chartArea.style.opacity = 0.3;
+        loadingSpinner.style.display = "block";
+        data = await fetchCrimeData(currentView, selectedType);
+    }
 
-    // 数据加载完毕，恢复 UI
+    // 数据获取完毕，统一关闭 Loading 恢复 UI
     loadingSpinner.style.display = "none";
     chartArea.style.opacity = 1;
 
     // 根据当前视图分发 Update 逻辑
-    if (currentView === 'trend') {
-        updateTrendChart(data);
-    } else if (currentView === 'weekly') {
-        updateWeeklyChart(data);
-    }
+    if (currentView === 'trend') updateTrendChart(data);
+    else if (currentView === 'weekly') updateWeeklyChart(data);
+    else if (currentView === 'hourly') updateHourlyChart(data);
+    else if (currentView === 'heatmap') updateHeatmapChart(data);
+    else if (currentView === 'arrest') updateArrestChart(data, selectedType);
 }
 
 // 页面初始化
@@ -58,12 +79,12 @@ document.addEventListener('DOMContentLoaded', () => {
             // 更新状态
             currentView = e.target.getAttribute("data-view");
 
-            // 切换视图时，必须重新初始化对应的 SVG 画布
-            if (currentView === 'trend') {
-                initTrendChart("#chart-area");
-            } else if (currentView === 'weekly') {
-                initWeeklyChart("#chart-area");
-            }
+            // 路由对应的初始化逻辑
+            if (currentView === 'trend') initTrendChart("#chart-area");
+            else if (currentView === 'weekly') initWeeklyChart("#chart-area");
+            else if (currentView === 'hourly') initHourlyChart("#chart-area");
+            else if (currentView === 'heatmap') initHeatmapChart("#chart-area");
+            else if (currentView === 'arrest') initArrestChart("#chart-area");
 
             // 渲染数据
             renderCurrentView();

@@ -1,7 +1,6 @@
 package com.bruon.dbspre.dao;
 
-import com.bruon.dbspre.dto.CrimeTrendDTO;
-import com.bruon.dbspre.dto.CrimeWeeklyDTO;
+import com.bruon.dbspre.dto.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -73,5 +72,80 @@ public class CrimeDAO {
                 return dto;
             }
         });
+    }
+
+    /**
+     * 分析 3：获取一天 24 小时内的犯罪分布 (支持按类型过滤)
+     */
+    public List<CrimeHourlyDTO> getHourlyDistribution(String crimeType) {
+        // 使用预计算的 crime_hour 字段
+        StringBuilder sql = new StringBuilder(
+                "SELECT crime_hour, COUNT(*) as total_count " +
+                        "FROM crimes WHERE crime_hour IS NOT NULL "
+        );
+        List<Object> params = new ArrayList<>();
+
+        if (crimeType != null && !crimeType.trim().isEmpty() && !"ALL".equalsIgnoreCase(crimeType)) {
+            sql.append("AND primary_type = ? ");
+            params.add(crimeType);
+        }
+
+        sql.append("GROUP BY crime_hour ORDER BY crime_hour ASC");
+
+        return jdbcTemplate.query(sql.toString(), params.toArray(), new RowMapper<CrimeHourlyDTO>() {
+            @Override
+            public CrimeHourlyDTO mapRow(ResultSet rs, int rowNum) throws SQLException {
+                CrimeHourlyDTO dto = new CrimeHourlyDTO();
+                dto.setHour(rs.getInt("crime_hour"));
+                dto.setCount(rs.getLong("total_count"));
+                return dto;
+            }
+        });
+    }
+    /**
+     * 分析 4：获取芝加哥犯罪空间分布热力图数据 (支持按类型过滤)
+     */
+    public List<HeatmapDTO> getCrimeHeatmap(String crimeType) {
+        // 使用 ROUND(..., 2) 将经纬度划分为 0.01 度的网格 (约 1km x 1km)
+        StringBuilder sql = new StringBuilder(
+                "SELECT ROUND(longitude, 2) AS lon_grid, ROUND(latitude, 2) AS lat_grid, COUNT(*) as total_count " +
+                        "FROM crimes FORCE INDEX (idx_type_lon_lat) WHERE latitude IS NOT NULL AND longitude IS NOT NULL "
+        );
+        List<Object> params = new ArrayList<>();
+
+        if (crimeType != null && !crimeType.trim().isEmpty() && !"ALL".equalsIgnoreCase(crimeType)) {
+            sql.append("AND primary_type = ? ");
+            params.add(crimeType);
+        }
+
+        sql.append("GROUP BY lon_grid, lat_grid");
+
+        return jdbcTemplate.query(sql.toString(), params.toArray(), new RowMapper<HeatmapDTO>() {
+            @Override
+            public HeatmapDTO mapRow(ResultSet rs, int rowNum) throws SQLException {
+                HeatmapDTO dto = new HeatmapDTO();
+                dto.setLonGrid(rs.getDouble("lon_grid"));
+                dto.setLatGrid(rs.getDouble("lat_grid"));
+                dto.setCount(rs.getLong("total_count"));
+                return dto;
+            }
+        });
+    }
+
+    /**
+     * 分析 5：不同类型犯罪的逮捕率排名
+     */
+    public List<ArrestRateDTO> getArrestRateRanking() {
+        String sql = "SELECT primary_type, COUNT(*) as total, " +
+                "SUM(CASE WHEN arrest = 1 THEN 1 ELSE 0 END) as arrests, " +
+                "(SUM(CASE WHEN arrest = 1 THEN 1 ELSE 0 END) / COUNT(*)) * 100 as rate " +
+                "FROM crimes GROUP BY primary_type ORDER BY rate DESC";
+
+        return jdbcTemplate.query(sql, (rs, rowNum) -> new ArrestRateDTO(
+                rs.getString("primary_type"),
+                rs.getLong("total"),
+                rs.getLong("arrests"),
+                rs.getDouble("rate")
+        ));
     }
 }

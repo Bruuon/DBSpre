@@ -5,6 +5,7 @@
     <title>芝加哥犯罪数据分析平台</title>
     <link rel="stylesheet" href="css/styles.css">
     <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://d3js.org/d3-scale-chromatic.v3.min.js"></script>
 </head>
 <body>
 
@@ -15,6 +16,9 @@
 <div class="nav-tabs">
     <div class="nav-tab active" data-view="trend">年度演变趋势 (折线图)</div>
     <div class="nav-tab" data-view="weekly">一周分布规律 (柱状图)</div>
+    <div class="nav-tab" data-view="hourly">24小时分布规律 (面积图)</div>
+    <div class="nav-tab" data-view="heatmap">空间分布热力图 (地图)</div>
+    <div class="nav-tab" data-view="arrest">不同类型犯罪的逮捕率差异</div>
 </div>
 
 <div class="main-content">
@@ -35,6 +39,8 @@
         <div id="chart-area"></div>
     </div>
 </div>
+
+<div id="tooltip" class="tooltip"></div>
 
 <script type="module" src="js/app.js"></script>
 </body>
