@@ -1,21 +1,201 @@
-body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; background-color: #f4f7f6; color: #333; }
-.header { background-color: #2c3e50; color: white; padding: 20px 40px; }
-.nav-tabs { background-color: #34495e; padding: 0 40px; display: flex; }
-.nav-tab { color: #ecf0f1; padding: 15px 25px; cursor: pointer; border-bottom: 3px solid transparent; font-weight: bold; transition: 0.3s; }
-.nav-tab:hover { background-color: #2c3e50; }
-.nav-tab.active { border-bottom: 3px solid #3498db; color: #3498db; background-color: #2c3e50; }
-.main-content { padding: 30px 40px; }
-.controls { margin-bottom: 20px; padding: 15px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); width: fit-content; }
-select { padding: 8px 12px; font-size: 16px; border: 1px solid #ccc; border-radius: 4px; outline: none; cursor: pointer; }
-.chart-container { background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: fit-content; position: relative;}
-.tooltip { position: absolute; background: rgba(0,0,0,0.8); color: white; padding: 8px; border-radius: 4px; pointer-events: none; opacity: 0; font-size: 12px; }
+/* 引入 CSS 变量，统一管理现代色彩体系和间距 */
+:root {
+    --bg-color: #f1f5f9;
+    --surface-color: #ffffff;
+    --primary-color: #2563eb;
+    --text-main: #0f172a;
+    --text-muted: #64748b;
+    --border-color: #e2e8f0;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
+    --shadow-lg: 0 10px 25px -5px rgba(0,0,0,0.05), 0 8px 10px -6px rgba(0,0,0,0.01);
+    --radius-md: 8px;
+    --radius-lg: 16px;
+}
 
-/* SVG 样式 */
-.line { fill: none; stroke: #e74c3c; stroke-width: 3px; stroke-linejoin: round; stroke-linecap: round; }
-.bar { fill: #3498db; transition: fill 0.3s; cursor: pointer; }
-.bar:hover { fill: #2980b9; }
-.axis text { font-size: 12px; fill: #555; }
-.axis path, .axis line { stroke: #bbb; }
-.grid line { stroke: #e0e0e0; stroke-opacity: 0.7; shape-rendering: crispEdges; }
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    margin: 0;
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    -webkit-font-smoothing: antialiased; /* 让字体更平滑清晰 */
+}
+
+/* 顶部导航头：深色微渐变，显得专业稳重 */
+.header {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    color: white;
+    padding: 24px 40px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.header h1 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    letter-spacing: -0.025em;
+}
+
+/* 导航 Tab：浅色底，悬浮效果，隐藏滚动条 */
+.nav-tabs {
+    background-color: var(--surface-color);
+    padding: 0 40px;
+    display: flex;
+    gap: 8px;
+    border-bottom: 1px solid var(--border-color);
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+.nav-tabs::-webkit-scrollbar { display: none; }
+
+.nav-tab {
+    color: var(--text-muted);
+    padding: 16px 20px;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 0.95rem;
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.nav-tab:hover {
+    color: var(--text-main);
+    background-color: #f8fafc;
+}
+
+.nav-tab.active {
+    color: var(--primary-color);
+    border-bottom: 3px solid var(--primary-color);
+    font-weight: 600;
+}
+
+/* 主体内容区：限制最大宽度，居中对齐 */
+.main-content {
+    padding: 32px 40px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* 控制台 (下拉菜单区)：卡片化 */
+.controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+    padding: 16px 24px;
+    background-color: var(--surface-color);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-color);
+    width: fit-content;
+}
+
+.controls label {
+    font-weight: 500;
+    color: var(--text-muted);
+}
+
+/* 极致美化的下拉选择框 */
+select {
+    appearance: none;
+    -webkit-appearance: none;
+    padding: 10px 36px 10px 16px;
+    font-size: 0.95rem;
+    font-family: inherit;
+    font-weight: 500;
+    color: var(--text-main);
+    background-color: #f8fafc;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    outline: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    /* 注入自定义的优雅下拉箭头 */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 16px;
+}
+
+select:hover { border-color: #cbd5e1; }
+select:focus { border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
+
+/* 图表动态标题 */
+#chart-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-main);
+    margin-bottom: 20px;
+    letter-spacing: -0.01em;
+}
+
+/* 核心图表容器：大圆角悬浮面板 */
+.chart-container {
+    background-color: var(--surface-color);
+    padding: 32px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    border: 1px solid var(--border-color);
+    position: relative;
+    min-height: 500px; /* 防止数据加载时页面跳动 */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* 高级感 Tooltip：深色毛玻璃 (Glassmorphism) */
+.tooltip {
+    position: absolute;
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    color: #f8fafc;
+    padding: 12px 16px;
+    border-radius: 8px;
+    pointer-events: none;
+    opacity: 0;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: opacity 0.2s, left 0.1s, top 0.1s;
+    z-index: 100;
+}
+
+/* =========================================
+   SVG & D3 内部元素全局美化
+========================================= */
+/* 折线图发光效果 */
+.line {
+    fill: none;
+    stroke: var(--primary-color);
+    stroke-width: 3px;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+    filter: drop-shadow(0px 4px 6px rgba(37,99,235,0.25));
+}
+/* 柱状图微透交互 */
+.bar { transition: fill 0.2s, opacity 0.2s; cursor: pointer; }
+.bar:hover { opacity: 0.85; }
+
+/* 坐标轴弱化，突出数据本身 */
+.axis text { font-size: 11px; fill: var(--text-muted); font-family: inherit; }
+.axis path, .axis line { stroke: var(--border-color); }
+.grid line { stroke: #f1f5f9; stroke-width: 1px; shape-rendering: crispEdges; }
 .grid path { stroke-width: 0; }
-.loading { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 18px; color: #7f8c8d; display: none; }
+
+/* 优雅的加载提示框 */
+.loading {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--primary-color);
+    display: none;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 12px 24px;
+    border-radius: 30px;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-color);
+    z-index: 10;
+}
