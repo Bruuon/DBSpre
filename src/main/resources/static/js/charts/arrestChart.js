@@ -57,8 +57,13 @@ export function updateArrestChart(data, selectedType) {
         })
         .on("mouseout", () => tooltip.style("opacity", 0))
         .transition(t)
-        // 【关键修复点】：使用 trim() 消除隐藏空格，保证严格匹配
-        .attr("fill", d => (d.type.trim() === selectedType.trim()) ? "#e74c3c" : "#27ae60")
+        // 【核心修复】：将 .attr 改为 .style，利用内联样式最高优先级覆盖 CSS 的蓝色
+        // 同时加入 toUpperCase() 双重保险，防止大小写不一致导致的匹配失败
+        .style("fill", d => {
+            const currentBarType = d.type ? d.type.trim().toUpperCase() : "";
+            const selectType = selectedType ? selectedType.trim().toUpperCase() : "";
+            return (currentBarType === selectType) ? "#e74c3c" : "#27ae60";
+        })
         .attr("y", d => y(d.type))
         .attr("height", y.bandwidth())
         .attr("width", d => x(d.arrestRate));

@@ -7,9 +7,13 @@ export async function fetchCrimeData(view, type) {
     if (view === 'hourly') endpoint = '/api/analysis/hourly';
     if (view === 'heatmap') endpoint = '/api/analysis/heatmap'; // 新增热力图路由
     if (view === 'arrest') endpoint = '/api/analysis/arrest-rate'; // 新增
+    if (view === 'school') endpoint = '/api/analysis/school'; // 新增
+    if (view === 'matrix') endpoint = '/api/analysis/matrix';
+    if (view === 'radar') endpoint = '/api/analysis/radar';
 
     try {
-        const response = await fetch(`${endpoint}?type=${type}`);
+        const url = (view === 'arrest' || view === 'matrix' || view === 'radar') ? endpoint : `${endpoint}?type=${type}`;
+        const response = await fetch(url);
         const result = await response.json();
 
         if (result.status === 'success') {

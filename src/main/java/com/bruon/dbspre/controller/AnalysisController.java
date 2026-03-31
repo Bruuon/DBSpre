@@ -118,4 +118,52 @@ public class AnalysisController {
         }
         return response;
     }
+
+    /**
+     * 接口 6：获取校园犯罪分析数据
+     * 访问路径：GET /api/analysis/school
+     */
+    @GetMapping("/school")
+    public Map<String, Object> getSchoolCrimeAnalysis(
+            @RequestParam(value = "type", required = false, defaultValue = "ALL") String type) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            response.put("status", "success");
+            response.put("data", crimeDAO.getSchoolCrimeAnalysis(type));
+        } catch (Exception e) {
+            response.put("status", "error");
+            response.put("message", "查询失败: " + e.getMessage());
+        }
+        return response;
+    }
+
+    /**
+     * 接口 7：获取犯罪多维矩阵气泡图数据
+     * 访问路径：GET /api/analysis/matrix
+     */
+    @GetMapping("/matrix")
+    public Map<String, Object> getCrimeMatrix() {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            response.put("status", "success");
+            response.put("data", crimeDAO.getCrimeMatrix());
+        } catch (Exception e) {
+            response.put("status", "error");
+            response.put("message", "查询失败: " + e.getMessage());
+        }
+        return response;
+    }
+
+    @GetMapping("/radar")
+    public Map<String, Object> getDistrictRadarProfile() {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            response.put("status", "success");
+            response.put("data", crimeDAO.getDistrictRadarProfile());
+        } catch (Exception e) {
+            response.put("status", "error");
+            response.put("message", "查询失败: " + e.getMessage());
+        }
+        return response;
+    }
 }
