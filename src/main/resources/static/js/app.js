@@ -8,12 +8,16 @@ import {initArrestChart, updateArrestChart } from "./charts/arrestChart.js";
 import { initSchoolChart, updateSchoolChart } from "./charts/schoolChart.js";
 import { initMatrixChart, updateMatrixChart } from './charts/matrixChart.js';
 import { initRadarChart, updateRadarChart } from './charts/radarChart.js';
+import { initDayTypeChart, updateDayTypeChart } from './charts/dayTypeChart.js';
+import { initStreamChart, updateStreamChart } from './charts/streamChart.js';
 
 // 全局状态管理
 let currentView = 'trend';
 let cachedArrestData = null; // 【优化 1】新增全局缓存变量
 let cachedMatrixData = null;
 let cachedRadarData = null;
+let cachedDayTypeData = null;
+let cachedStreamData = null;
 
 // 统一的视图渲染调度器
 async function renderCurrentView() {
@@ -31,7 +35,9 @@ async function renderCurrentView() {
         'arrest': `5. 不同类型犯罪逮捕率排名 (全局对比)`,
         'school': `6. 校园犯罪占比及高发时段分析 (${selectedType})`,
         'matrix': `7. 芝加哥犯罪时空深度画像 (气泡大小=案发量，颜色=逮捕率)`,
-        'radar': `8. 芝加哥典型警区犯罪基因画像 (商业区 vs 高危区 vs 夜生活区)`
+        'radar': `8. 芝加哥典型警区犯罪基因画像 (商业区 vs 高危区 vs 夜生活区)`,
+        'dayType': `9. 工作日 vs 周末犯罪分布画像 (颜色深浅=案发强度)`,
+        'stream': `10. 芝加哥宏观犯罪生态演变史 (河流图)`
     };
     titleObj.innerText = titleMap[currentView];
 
@@ -60,6 +66,20 @@ async function renderCurrentView() {
             cachedRadarData = await fetchCrimeData('radar', 'ALL');
         }
         data = cachedRadarData;
+    } else if (currentView === 'dayType') {
+        if (!cachedDayTypeData) {
+            chartArea.style.opacity = 0.3;
+            loadingSpinner.style.display = "block";
+            cachedDayTypeData = await fetchCrimeData('dayType', 'ALL');
+        }
+        data = cachedDayTypeData;
+    } else if (currentView === 'stream') {
+        if (!cachedStreamData) {
+            chartArea.style.opacity = 0.3;
+            loadingSpinner.style.display = "block";
+            cachedStreamData = await fetchCrimeData('stream', 'ALL');
+        }
+        data = cachedStreamData;
     } else {
         // 其他视图：每次都显示 Loading 并发起网络请求
         chartArea.style.opacity = 0.3;
@@ -80,46 +100,64 @@ async function renderCurrentView() {
     else if (currentView === 'school') updateSchoolChart(data);
     else if (currentView === 'matrix') updateMatrixChart(data);
     else if (currentView === 'radar') updateRadarChart(data);
+    else if (currentView === 'dayType') updateDayTypeChart(data);
+    else if (currentView === 'stream') updateStreamChart(data);
 }
 
 // 页面初始化
 document.addEventListener('DOMContentLoaded', () => {
     const crimeTypeSelect = document.getElementById("crime-type-select");
-    const navTabs = document.querySelectorAll(".nav-tab");
+    const dynamicSelect = document.getElementById("dynamic-view-select");
+    const globalSelect = document.getElementById("global-view-select");
+    const filterGroup = document.getElementById("filter-control-group"); // 获取过滤器容器，用于控制透明度
 
-    // 1. 监听下拉菜单切换 (不需要重新 init 图表，只 update)
+    // 1. 监听犯罪类型切换 (只有在动态切片下才有意义)
     crimeTypeSelect.addEventListener("change", () => {
         renderCurrentView();
     });
 
-    // 2. 监听顶部导航栏切换 (需要销毁旧图表，重新 init 新图表)
-    navTabs.forEach(tab => {
-        tab.addEventListener("click", (e) => {
-            if (e.target.classList.contains("active")) return; // 点击当前已激活的 tab 无响应
+    // 统一的下拉菜单切换处理函数
+    function switchView(newView, isGlobal) {
+        currentView = newView;
 
-            // UI 高亮切换
-            navTabs.forEach(t => t.classList.remove("active"));
-            e.target.classList.add("active");
+        // 【核心交互联动】
+        if (isGlobal) {
+            // 如果选了全局视野，清空动态切片的值
+            dynamicSelect.value = "";
+            // 禁用并让“聚焦类型”变暗，因为全局视野看的是大盘，不接受单类型过滤
+            filterGroup.style.opacity = "0.4";
+            crimeTypeSelect.disabled = true;
+        } else {
+            // 如果选了动态切片，清空全局视野的值
+            globalSelect.value = "";
+            // 恢复“聚焦类型”的高亮与可用状态
+            filterGroup.style.opacity = "1";
+            crimeTypeSelect.disabled = false;
+        }
 
-            // 更新状态
-            currentView = e.target.getAttribute("data-view");
+        // 路由对应的初始化逻辑
+        if (currentView === 'trend') initTrendChart("#chart-area");
+        else if (currentView === 'weekly') initWeeklyChart("#chart-area");
+        else if (currentView === 'hourly') initHourlyChart("#chart-area");
+        else if (currentView === 'heatmap') initHeatmapChart("#chart-area");
+        else if (currentView === 'school') initSchoolChart("#chart-area");
+        else if (currentView === 'arrest') initArrestChart("#chart-area");
+        else if (currentView === 'matrix') initMatrixChart("#chart-area");
+        else if (currentView === 'radar') initRadarChart("#chart-area");
+        else if (currentView === 'dayType') initDayTypeChart("#chart-area");
+        else if (currentView === 'stream') initStreamChart("#chart-area");
 
-            // 路由对应的初始化逻辑
-            if (currentView === 'trend') initTrendChart("#chart-area");
-            else if (currentView === 'weekly') initWeeklyChart("#chart-area");
-            else if (currentView === 'hourly') initHourlyChart("#chart-area");
-            else if (currentView === 'heatmap') initHeatmapChart("#chart-area");
-            else if (currentView === 'arrest') initArrestChart("#chart-area");
-            else if (currentView === 'school') initSchoolChart("#chart-area");
-            else if (currentView === 'matrix') initMatrixChart("#chart-area");
-            else if (currentView === 'radar') initRadarChart("#chart-area");
+        // 渲染数据
+        renderCurrentView();
+    }
 
-            // 渲染数据
-            renderCurrentView();
-        });
-    });
+    // 2. 监听动态切片下拉框
+    dynamicSelect.addEventListener("change", (e) => switchView(e.target.value, false));
 
-    // 3. 初始启动加载
+    // 3. 监听全局视野下拉框
+    globalSelect.addEventListener("change", (e) => switchView(e.target.value, true));
+
+    // 4. 初始启动加载
     initTrendChart("#chart-area");
     renderCurrentView();
 });

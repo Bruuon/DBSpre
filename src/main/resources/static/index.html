@@ -14,36 +14,51 @@
     <h1 style="margin: 0;">芝加哥犯罪数据分析平台</h1>
 </div>
 
-<div class="nav-tabs">
-    <div class="nav-tab active" data-view="trend">年度演变趋势 (折线图)</div>
-    <div class="nav-tab" data-view="weekly">一周分布规律 (柱状图)</div>
-    <div class="nav-tab" data-view="hourly">24小时分布规律 (面积图)</div>
-    <div class="nav-tab" data-view="heatmap">空间分布热力图 (地图)</div>
-    <div class="nav-tab" data-view="arrest">不同类型犯罪的逮捕率差异</div>
-    <div class="nav-tab" data-view="school">学校相关犯罪分析 (嵌套环形图)</div>
-    <div class="nav-tab" data-view="matrix">时间×类型×逮捕率 (矩阵气泡)</div>
-    <div class="nav-tab" data-view="radar">警区犯罪画像 (多维雷达图)</div>
-</div>
-
 <div class="main-content">
-    <div class="controls">
-        <label for="crime-type-select"><strong>聚焦特定犯罪类型：</strong></label>
-        <select id="crime-type-select">
-            <option value="ALL">全部犯罪总数 (ALL)</option>
-            <option value="THEFT">盗窃 (THEFT)</option>
-            <option value="BATTERY">殴打/人身攻击 (BATTERY)</option>
-            <option value="CRIMINAL DAMAGE">刑事破坏 (CRIMINAL DAMAGE)</option>
-            <option value="NARCOTICS">毒品犯罪 (NARCOTICS)</option>
-            <option value="ASSAULT">蓄意伤害 (ASSAULT)</option>
-            <option value="BURGLARY">入室盗窃 (BURGLARY)</option>
-            <option value="MOTOR VEHICLE THEFT">机动车盗窃 (MOTOR VEHICLE THEFT)</option>
-            <option value="ROBBERY">抢劫 (ROBBERY)</option>
-            <option value="DECEPTIVE PRACTICE">欺诈行为 (DECEPTIVE PRACTICE)</option>
-            <option value="WEAPONS VIOLATION">武器违规 (WEAPONS VIOLATION)</option>
-        </select>
-    </div>
 
-    <h3 id="chart-title">数据初始化中...</h3>
+    <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 24px;">
+
+        <div class="controls" style="margin-bottom: 0;">
+            <label for="dynamic-view-select"><strong> 动态切片 (单维过滤)：</strong></label>
+            <select id="dynamic-view-select">
+                <option value="trend" selected> 年度演变趋势 (折线图)</option>
+                <option value="weekly"> 一周分布规律 (柱状图)</option>
+                <option value="hourly"> 24小时分布规律 (面积图)</option>
+                <option value="heatmap"> 空间分布热力图 (地图)</option>
+                <option value="school"> 学校相关犯罪分析 (嵌套环形图)</option>
+            </select>
+        </div>
+
+        <div class="controls" style="margin-bottom: 0;">
+            <label for="global-view-select"><strong> 全局视野 (多维交叉)：</strong></label>
+            <select id="global-view-select">
+                <option value="" disabled selected>-- 切换至全局大盘图表 --</option>
+                <option value="arrest"> 逮捕率排行榜 (横向柱状图)</option>
+                <option value="matrix"> 时间×类型×逮捕率 (矩阵气泡)</option>
+                <option value="radar"> 警区犯罪画像 (多维雷达图)</option>
+                <option value="dayType"> 工作日 vs 周末分布 (矩阵热力图)</option>
+                <option value="stream"> 历史生态演变 (河流图)</option>
+            </select>
+        </div>
+
+        <div class="controls" id="filter-control-group" style="margin-bottom: 0; transition: opacity 0.3s;">
+            <label for="crime-type-select"><strong> 聚焦类型：</strong></label>
+            <select id="crime-type-select">
+                <option value="ALL">全部犯罪总数 (ALL)</option>
+                <option value="THEFT">盗窃 (THEFT)</option>
+                <option value="BATTERY">殴打/人身攻击 (BATTERY)</option>
+                <option value="CRIMINAL DAMAGE">刑事破坏 (CRIMINAL DAMAGE)</option>
+                <option value="NARCOTICS">毒品犯罪 (NARCOTICS)</option>
+                <option value="ASSAULT">蓄意伤害 (ASSAULT)</option>
+                <option value="BURGLARY">入室盗窃 (BURGLARY)</option>
+                <option value="MOTOR VEHICLE THEFT">机动车盗窃 (MOTOR VEHICLE THEFT)</option>
+                <option value="ROBBERY">抢劫 (ROBBERY)</option>
+                <option value="DECEPTIVE PRACTICE">欺诈行为 (DECEPTIVE PRACTICE)</option>
+                <option value="WEAPONS VIOLATION">武器违规 (WEAPONS VIOLATION)</option>
+            </select>
+        </div>
+
+    </div> <h3 id="chart-title">数据初始化中...</h3>
     <div class="chart-container">
         <div class="loading" id="loading-spinner">数据查询中，请稍候...</div>
         <div id="chart-area"></div>

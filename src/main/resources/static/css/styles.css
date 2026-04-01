@@ -1,46 +1,66 @@
-/* 引入 CSS 变量，统一管理现代色彩体系和间距 */
+/* =========================================
+   1. 调色盘中心 (以 8 款核心灵感色为基础的衍生系统)
+========================================= */
 :root {
-    --bg-color: #f1f5f9;
-    --surface-color: #ffffff;
-    --primary-color: #2563eb;
-    --text-main: #0f172a;
-    --text-muted: #64748b;
-    --border-color: #e2e8f0;
-    --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
-    --shadow-lg: 0 10px 25px -5px rgba(0,0,0,0.05), 0 8px 10px -6px rgba(0,0,0,0.01);
-    --radius-md: 8px;
-    --radius-lg: 16px;
+    /* 🎯 用户的 8 款核心锚点色 */
+    --c-crimson: #D8A25E;   /* 赤红 */
+    --c-sand: #EDDCC6;      /* 浅沙 */
+    --c-cream: #FFF4EA;     /* 奶油 */
+    --c-teal: #A04747;      /* 灰绿/水蓝 */
+    --c-slate: #343131;     /* 板岩灰 */
+    --c-latte: #ECD5BC;     /* 拿铁 */
+    --c-mustard: #EEDF7A;   /* 芥末黄 */
+    --c-terra: #C66E52;     /* 陶土橙 */
+
+    /* 🎨 相协调的衍生 UI 色 (用于背景、文字、阴影，拉开层次) */
+    --bg-page: #FCF9F6;           /* 极浅的米白色，比 cream 更柔和，用作网页大背景 */
+    --bg-surface: #FFFFFF;        /* 纯白，用于卡片，与大背景形成微弱但高级的对比 */
+    --bg-hover: #F5EBE1;          /* 悬浮状态底色，取自 latte 的极浅版 */
+
+    --text-heading: #222222;      /* 标题极深灰，基于 slate 压暗，避免死黑的突兀 */
+    --text-body: #343131;         /* 正文深灰，清晰且不刺眼 */
+    --text-muted: var(--c-slate); /* 辅助说明文字，直接使用板岩灰 */
+
+    --border-light: rgba(237, 220, 198, 0.6); /* 极柔和的沙色边框 */
+    --shadow-soft: #343131; /* 带有板岩灰色调的高级软阴影 */
+
+    /* 雷达图专用映射 */
+    --radar-001: var(--c-teal);
+    --radar-011: var(--c-crimson);
+    --radar-018: var(--c-mustard);
 }
 
 body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     margin: 0;
-    background-color: var(--bg-color);
-    color: var(--text-main);
-    -webkit-font-smoothing: antialiased; /* 让字体更平滑清晰 */
+    background-color: var(--bg-page);
+    color: var(--text-body);
+    -webkit-font-smoothing: antialiased;
 }
 
-/* 顶部导航头：深色微渐变，显得专业稳重 */
+/* =========================================
+   2. 框架布局与 UI 组件
+========================================= */
 .header {
-    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-    color: white;
+    /* 顶部背景使用极深的板岩灰，搭配奶油色文字，沉稳高级 */
+    background-color: #343131;
+    color: var(--c-cream);
     padding: 24px 40px;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
 .header h1 {
     font-size: 1.5rem;
     font-weight: 600;
-    letter-spacing: -0.025em;
+    letter-spacing: -0.02em;
 }
 
-/* 导航 Tab：浅色底，悬浮效果，隐藏滚动条 */
 .nav-tabs {
-    background-color: var(--surface-color);
+    background-color: var(--bg-surface);
     padding: 0 40px;
     display: flex;
     gap: 8px;
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-light);
     overflow-x: auto;
     scrollbar-width: none;
 }
@@ -58,144 +78,200 @@ body {
 }
 
 .nav-tab:hover {
-    color: var(--text-main);
-    background-color: #f8fafc;
+    color: var(--text-heading);
+    background-color: var(--bg-hover);
 }
 
 .nav-tab.active {
-    color: var(--primary-color);
-    border-bottom: 3px solid var(--primary-color);
+    color: var(--c-teal);
+    border-bottom: 3px solid var(--c-teal);
     font-weight: 600;
 }
 
-/* 主体内容区：限制最大宽度，居中对齐 */
 .main-content {
     padding: 32px 40px;
     max-width: 1400px;
     margin: 0 auto;
 }
 
-/* 控制台 (下拉菜单区)：卡片化 */
 .controls {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 8px;
     margin-bottom: 24px;
-    padding: 16px 24px;
-    background-color: var(--surface-color);
+    padding: 10px 16px;
+    background-color: var(--bg-surface);
     border-radius: var(--radius-md);
-    box-shadow: var(--shadow-sm);
-    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-soft);
+    border: 1px solid var(--border-light);
     width: fit-content;
 }
 
 .controls label {
     font-weight: 500;
     color: var(--text-muted);
+    font-size: 0.85rem; /* 新增：把字号调小（原默认1rem左右） */
+    white-space: nowrap; /* 新增：强制文字不换行，保证单行排版 */
 }
 
-/* 极致美化的下拉选择框 */
 select {
     appearance: none;
     -webkit-appearance: none;
-    padding: 10px 36px 10px 16px;
-    font-size: 0.95rem;
+    padding: 6px 18px 6px 12px;
+    font-size: 0.85rem;
     font-family: inherit;
     font-weight: 500;
-    color: var(--text-main);
-    background-color: #f8fafc;
-    border: 1px solid var(--border-color);
+    color: var(--text-heading);
+    background-color: var(--bg-page);
+    border: 1px solid var(--c-latte);
     border-radius: 6px;
     outline: none;
     cursor: pointer;
     transition: all 0.2s;
-    /* 注入自定义的优雅下拉箭头 */
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+    /* 板岩灰色的自定义小箭头 */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23758A93'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
     background-repeat: no-repeat;
-    background-position: right 12px center;
-    background-size: 16px;
+    background-position: right 8px center;
+    background-size: 14px;
 }
 
-select:hover { border-color: #cbd5e1; }
-select:focus { border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
+select:hover { border-color: var(--c-terra); }
+select:focus { border-color: var(--c-teal); box-shadow: #343131; }
 
-/* 图表动态标题 */
 #chart-title {
-    font-size: 1.25rem;
+    font-size: 1rem;
     font-weight: 600;
-    color: var(--text-main);
+    color: var(--text-heading);
     margin-bottom: 20px;
     letter-spacing: -0.01em;
 }
 
-/* 核心图表容器：大圆角悬浮面板 */
 .chart-container {
-    background-color: var(--surface-color);
+    background-color: var(--bg-surface);
     padding: 32px;
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-lg);
-    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    box-shadow: var(--shadow-soft);
+    border: 1px solid var(--border-light);
     position: relative;
-    min-height: 500px; /* 防止数据加载时页面跳动 */
+    min-height: 500px;
     display: flex;
     justify-content: center;
     align-items: center;
 }
 
-/* 高级感 Tooltip：深色毛玻璃 (Glassmorphism) */
 .tooltip {
     position: absolute;
-    background: rgba(15, 23, 42, 0.85);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    color: #f8fafc;
+    /* 使用深青灰的半透明色作为底色，搭配浅奶油色边框，质感拉满 */
+    background: #343131;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    color: var(--c-cream);
     padding: 12px 16px;
     border-radius: 8px;
     pointer-events: none;
     opacity: 0;
     font-size: 0.85rem;
     line-height: 1.5;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(255, 244, 234, 0.15);
     transition: opacity 0.2s, left 0.1s, top 0.1s;
     z-index: 100;
 }
 
-/* =========================================
-   SVG & D3 内部元素全局美化
-========================================= */
-/* 折线图发光效果 */
-.line {
-    fill: none;
-    stroke: var(--primary-color);
-    stroke-width: 3px;
-    stroke-linejoin: round;
-    stroke-linecap: round;
-    filter: drop-shadow(0px 4px 6px rgba(37,99,235,0.25));
-}
-/* 柱状图微透交互 */
-.bar { transition: fill 0.2s, opacity 0.2s; cursor: pointer; }
-.bar:hover { opacity: 0.85; }
-
-/* 坐标轴弱化，突出数据本身 */
-.axis text { font-size: 11px; fill: var(--text-muted); font-family: inherit; }
-.axis path, .axis line { stroke: var(--border-color); }
-.grid line { stroke: #f1f5f9; stroke-width: 1px; shape-rendering: crispEdges; }
-.grid path { stroke-width: 0; }
-
-/* 优雅的加载提示框 */
 .loading {
     position: absolute;
     top: 50%; left: 50%;
     transform: translate(-50%, -50%);
     font-size: 0.95rem;
     font-weight: 500;
-    color: var(--primary-color);
+    color: var(--c-teal);
     display: none;
     background: rgba(255, 255, 255, 0.95);
     padding: 12px 24px;
     border-radius: 30px;
-    box-shadow: var(--shadow-sm);
-    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-soft);
+    border: 1px solid var(--border-light);
     z-index: 10;
+}
+
+/* =========================================
+   3. D3 图表解耦样式库 (完美和谐的色彩碰撞)
+========================================= */
+
+/* 坐标轴弱化，凸显数据色彩 */
+.axis text { font-size: 11px; fill: var(--text-muted); font-family: inherit; }
+.axis path, .axis line { stroke: var(--c-sand); }
+.grid line { stroke: var(--bg-page); stroke-width: 1px; shape-rendering: crispEdges; }
+.grid path { stroke-width: 0; }
+
+/* 🟢 主数据色：高级水蓝色 (Teal) */
+.bar,
+.arrest-bar,
+.arc-school-all {
+    fill: var(--c-teal);
+    transition: opacity 0.2s, fill 0.2s;
+    cursor: pointer;
+}
+.bar:hover { opacity: 0.85; }
+
+/* 🔴 强调色：陶土橙(选中) / 赤红(危险警告) */
+.arrest-bar.highlight { fill: var(--c-terra); }  /* 被下拉菜单选中的柱子 */
+.arc-school-night { fill: var(--c-crimson); }    /* 夜间校园犯罪（危险） */
+
+/* 🟡 辅助/对比色：芥末黄 (Mustard) */
+.arc-school-day { fill: var(--c-mustard); }      /* 白天校园犯罪 */
+
+/* 🟤 垫底/中性色：浅沙色 (Sand) */
+.arc-non-school { fill: var(--c-sand); }
+.arc-transparent { fill: transparent; }
+
+/* 〰️ 线条与面状图 (年度趋势 & 24小时分布) */
+.line {
+    fill: none;
+    stroke: var(--c-teal);
+    stroke-width: 3px;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+    /* 同色系的通透发光效果 */
+    filter: drop-shadow(0px 4px 6px #343131);
+}
+.hourly-area {
+    fill: var(--c-teal);
+    fill-opacity: 0.25; /* 降低透明度让背后的网格线隐约可见 */
+    stroke: none;
+}
+.hourly-line {
+    fill: none;
+    stroke: var(--c-teal);
+    stroke-width: 2.5px;
+}
+
+/* 🕸️ 雷达图细部定制 */
+.radar-grid { fill: none; stroke: var(--c-latte); stroke-dasharray: 4,4; }
+.radar-axis { stroke: var(--c-sand); stroke-width: 1px; }
+.radar-tick { font-size: 10px; fill: var(--text-muted); }
+.radar-label { font-size: 12px; font-weight: bold; fill: var(--text-heading); }
+
+/* 🏷️ 矩阵图图例 */
+.matrix-legend-title { font-size: 12px; fill: var(--text-heading); font-weight: bold; }
+.matrix-legend-low { font-size: 12px; fill: var(--c-crimson); }
+.matrix-legend-mid { font-size: 12px; fill: var(--c-mustard); }
+.matrix-legend-high { font-size: 12px; fill: var(--c-teal); }
+
+/* 👆 全局交互动效接管区 (气泡图 & 热力图) */
+.bubble { transition: stroke-width 0.2s, opacity 0.2s; stroke: var(--c-slate); stroke-width: 0.5px; opacity: 0.8; }
+.bubble:hover { stroke-width: 2px; opacity: 1; }
+
+.grid-cell { transition: stroke 0.2s, stroke-width 0.2s; stroke: none; }
+.grid-cell:hover { stroke: var(--text-heading); stroke-width: 1.5px; }
+
+.matrix-cell {
+    /* 采用奶油色作为间隙，形成网格感 */
+    stroke: var(--bg-page);
+    stroke-width: 2px;
+    cursor: pointer;
+    transition: filter 0.2s;
+}
+.matrix-cell:hover {
+    filter: brightness(0.9);
 }

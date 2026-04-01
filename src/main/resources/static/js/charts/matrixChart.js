@@ -20,7 +20,9 @@ export function initMatrixChart(containerSelector) {
     yScale = d3.scaleBand().range([0, height]).padding(0.1);
     sizeScale = d3.scaleSqrt().range([2, 18]); // 气泡半径 2px ~ 18px
     // 颜色比例尺：RdYlGn (红-黄-绿)，0%为红，100%为绿
-    colorScale = d3.scaleSequential(d3.interpolateRdYlGn).domain([0, 100]);
+    colorScale = d3.scaleLinear()
+        .domain([0, 50, 100])
+        .range(["#BF4646", "#E9B63B", "#7EACB5"]);
 
     tooltip = d3.select("#tooltip");
 
@@ -28,11 +30,11 @@ export function initMatrixChart(containerSelector) {
     svg.append("g").attr("class", "x-axis").attr("transform", `translate(0,${height})`);
     svg.append("g").attr("class", "y-axis");
 
-    // 添加标题/图例说明
-    svg.append("text").attr("x", width + 20).attr("y", -20).text("逮捕率说明:").style("font-size", "12px").style("fill", "#7f8c8d");
-    svg.append("text").attr("x", width + 20).attr("y", 0).text("🔴 低 (<20%)").style("font-size", "12px").style("fill", "#e74c3c");
-    svg.append("text").attr("x", width + 20).attr("y", 20).text("🟡 中 (40~60%)").style("font-size", "12px").style("fill", "#f1c40f");
-    svg.append("text").attr("x", width + 20).attr("y", 40).text("🟢 高 (>80%)").style("font-size", "12px").style("fill", "#2ecc71");
+    // 替换为使用 class
+    svg.append("text").attr("x", width + 20).attr("y", -20).text("逮捕率说明:").attr("class", "matrix-legend-title");
+    svg.append("text").attr("x", width + 20).attr("y", 0).text("🔴 低 (<20%)").attr("class", "matrix-legend-low");
+    svg.append("text").attr("x", width + 20).attr("y", 20).text("🟡 中 (40~60%)").attr("class", "matrix-legend-mid");
+    svg.append("text").attr("x", width + 20).attr("y", 40).text("🟢 高 (>80%)").attr("class", "matrix-legend-high");
 }
 
 export function updateMatrixChart(data) {
@@ -73,18 +75,14 @@ export function updateMatrixChart(data) {
         .attr("r", 0) // 初始半径为0，用于进场动画
         .attr("fill", d => colorScale(d.arrestRate))
         .attr("opacity", 0.8)
-        .attr("stroke", "#333")
-        .attr("stroke-width", 0.5)
         .merge(bubbles)
         .on("mouseover", function(event, d) {
-            d3.select(this).attr("stroke-width", 2).attr("opacity", 1);
             tooltip.style("opacity", 1)
                 .html(`<strong>${d.type}</strong><br>时段: ${d.hour}:00 - ${d.hour+1}:00<br>案发数量: ${d.count.toLocaleString()} 起<br>逮捕率: <span style="color:${colorScale(d.arrestRate)}"><b>${d.arrestRate.toFixed(1)}%</b></span>`)
                 .style("left", (event.pageX + 15) + "px")
                 .style("top", (event.pageY - 28) + "px");
         })
         .on("mouseout", function() {
-            d3.select(this).attr("stroke-width", 0.5).attr("opacity", 0.8);
             tooltip.style("opacity", 0);
         })
         .transition(t)

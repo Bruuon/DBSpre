@@ -49,6 +49,11 @@ export function updateArrestChart(data, selectedType) {
         .attr("height", y.bandwidth())
         .attr("width", 0)
         .merge(bars)
+        .attr("class", d => {
+            const currentBarType = d.type ? d.type.trim().toUpperCase() : "";
+            const selectType = selectedType ? selectedType.trim().toUpperCase() : "";
+            return (currentBarType === selectType) ? "bar arrest-bar highlight" : "bar arrest-bar";
+        })
         .on("mouseover", (event, d) => {
             tooltip.style("opacity", 1)
                 .html(`类型: ${d.type}<br>逮捕率: ${d.arrestRate.toFixed(2)}%<br>逮捕数/总数: ${d.arrestCount}/${d.totalCases}`)
@@ -57,13 +62,6 @@ export function updateArrestChart(data, selectedType) {
         })
         .on("mouseout", () => tooltip.style("opacity", 0))
         .transition(t)
-        // 【核心修复】：将 .attr 改为 .style，利用内联样式最高优先级覆盖 CSS 的蓝色
-        // 同时加入 toUpperCase() 双重保险，防止大小写不一致导致的匹配失败
-        .style("fill", d => {
-            const currentBarType = d.type ? d.type.trim().toUpperCase() : "";
-            const selectType = selectedType ? selectedType.trim().toUpperCase() : "";
-            return (currentBarType === selectType) ? "#e74c3c" : "#27ae60";
-        })
         .attr("y", d => y(d.type))
         .attr("height", y.bandwidth())
         .attr("width", d => x(d.arrestRate));

@@ -27,15 +27,11 @@ export function initHourlyChart(containerSelector) {
 
     // 面积填充路径
     areaPath = svg.append("path")
-        .attr("fill", "#3498db")
-        .attr("fill-opacity", 0.3)
-        .attr("stroke", "none");
+        .attr("class", "hourly-area"); // 替换掉原有的 fill 和 stroke
 
     // 顶部线条路径
     linePath = svg.append("path")
-        .attr("fill", "none")
-        .attr("stroke", "#2980b9")
-        .attr("stroke-width", 2.5);
+        .attr("class", "hourly-line"); // 替换掉原有的 fill 和 stroke
 }
 
 export function updateHourlyChart(data) {

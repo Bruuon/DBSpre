@@ -20,16 +20,15 @@ export function updateSchoolChart(data) {
     if (!data) return;
     svg.selectAll("*").remove(); // 每次更新重绘嵌套图
 
-    // 数据重组：适配 D3 的嵌套饼图逻辑
+    // 1. 将 color 属性替换为 className
     const innerData = [
-        { label: "非校园区域", value: data.nonSchoolCount, color: "#bdc3c7" },
-        { label: "校园区域", value: data.schoolDayCount + data.schoolNightCount, color: "#3498db" }
+        { label: "非校园区域", value: data.nonSchoolCount, className: "arc-non-school" },
+        { label: "校园区域", value: data.schoolDayCount + data.schoolNightCount, className: "arc-school-all" }
     ];
-
     const outerData = [
-        { label: "非校园区域 (占位不可见)", value: data.nonSchoolCount, color: "transparent" },
-        { label: "上学时段 (07:00-17:00)", value: data.schoolDayCount, color: "#2ecc71" },
-        { label: "放学时段 (17:00-07:00)", value: data.schoolNightCount, color: "#e74c3c" }
+        { label: "非校园区域 (占位不可见)", value: data.nonSchoolCount, className: "arc-transparent" },
+        { label: "上学时段 (07:00-17:00)", value: data.schoolDayCount, className: "arc-school-day" },
+        { label: "放学时段 (17:00-07:00)", value: data.schoolNightCount, className: "arc-school-night" }
     ];
 
     const total = data.nonSchoolCount + data.schoolDayCount + data.schoolNightCount;
@@ -46,10 +45,7 @@ export function updateSchoolChart(data) {
         .enter().append("g").attr("class", "arc-inner");
 
     innerArcs.append("path")
-        .attr("d", arcInner)
-        .attr("fill", d => d.data.color)
-        .attr("stroke", "#fff")
-        .attr("stroke-width", "2px")
+        .attr("class", d => `arc-path ${d.data.className}`)
         .on("mouseover", function(event, d) {
             d3.select(this).attr("opacity", 0.8);
             const percent = ((d.data.value / total) * 100).toFixed(2);
@@ -75,12 +71,9 @@ export function updateSchoolChart(data) {
         .enter().append("g").attr("class", "arc-outer");
 
     outerArcs.append("path")
-        .attr("d", arcOuter)
-        .attr("fill", d => d.data.color)
-        .attr("stroke", "#fff")
-        .attr("stroke-width", "2px")
+        .attr("class", d => "arc-path " + d.data.className)
         .on("mouseover", function(event, d) {
-            if (d.data.color === "transparent") return; // 忽略占位符
+            if (d.data.className === "arc-transparent") return; // 忽略占位符
             d3.select(this).attr("opacity", 0.8);
             const schoolTotal = data.schoolDayCount + data.schoolNightCount;
             const percent = ((d.data.value / schoolTotal) * 100).toFixed(2);

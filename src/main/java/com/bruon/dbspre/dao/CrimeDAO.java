@@ -211,4 +211,40 @@ public class CrimeDAO {
                 rs.getLong("total_count")
         ));
     }
+
+    /**
+     * 分析 9：工作日 vs 周末犯罪热力矩阵 (复用现有复合索引)
+     */
+    public List<DayTypeDTO> getDayTypeMatrix() {
+        // 1 代表周日，7 代表周六
+        String sql = "SELECT primary_type, crime_day, COUNT(*) as total_count " +
+                "FROM crimes " +
+                "GROUP BY primary_type, crime_day";
+
+        return jdbcTemplate.query(sql, (rs, rowNum) -> {
+            DayTypeDTO dto = new DayTypeDTO();
+            dto.setType(rs.getString("primary_type"));
+            dto.setDayOfWeek(rs.getInt("crime_day"));
+            dto.setCount(rs.getLong("total_count"));
+            return dto;
+        });
+    }
+
+    /**
+     * 分析 10：宏观犯罪生态演变河流图 (复用 idx_type_year)
+     */
+    public List<EvolutionDTO> getCrimeEvolutionStream() {
+        String sql = "SELECT year, primary_type, COUNT(*) as total_count " +
+                "FROM crimes " +
+                "WHERE year IS NOT NULL " +
+                "AND primary_type IN ('THEFT', 'BATTERY', 'NARCOTICS', 'ASSAULT', 'BURGLARY', 'ROBBERY') " +
+                "GROUP BY year, primary_type " +
+                "ORDER BY year ASC";
+
+        return jdbcTemplate.query(sql, (rs, rowNum) -> new EvolutionDTO(
+                rs.getInt("year"),
+                rs.getString("primary_type"),
+                rs.getLong("total_count")
+        ));
+    }
 }

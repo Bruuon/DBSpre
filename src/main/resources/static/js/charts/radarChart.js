@@ -5,11 +5,10 @@ const margin = 100;
 const radius = Math.min(width, height) / 2 - margin;
 const features = ['THEFT', 'BATTERY', 'NARCOTICS', 'ASSAULT', 'BURGLARY', 'ROBBERY'];
 
-// 修改 js/charts/radarChart.js 里的映射字典
 const districtMap = {
-    '001': { name: '01区 (市中心/商业圈)', color: '#3498db' }, // 改为 '001'
-    '011': { name: '11区 (哈里森/高危区)', color: '#e74c3c' }, // 改为 '011'
-    '018': { name: '18区 (近北区/夜生活)', color: '#9b59b6' }  // 改为 '018'
+    '001': { name: '01区 (市中心/商业圈)', color: 'var(--radar-001)' },
+    '011': { name: '11区 (哈里森/高危区)', color: 'var(--radar-011)' },
+    '018': { name: '18区 (近北区/夜生活)', color: 'var(--radar-018)' }
 };
 export function initRadarChart(containerSelector) {
     const container = d3.select(containerSelector);
@@ -29,12 +28,13 @@ export function initRadarChart(containerSelector) {
         const r = (radius / 80) * t; // 映射半径 (假设最大值80%)
         svg.append("circle")
             .attr("cx", 0).attr("cy", 0).attr("r", r)
-            .style("fill", "none").style("stroke", "#e0e0e0").style("stroke-dasharray", "4,4");
+            .attr("class", "radar-grid");
 
         // 标尺文字
         svg.append("text")
             .attr("x", 5).attr("y", -r - 2)
-            .text(`${t}%`).style("font-size", "10px").style("fill", "#bdc3c7");
+            .attr("class", "radar-tick")
+            .text(`${t}%`);
     });
 
     // 绘制坐标轴线 (蜘蛛网的骨架)
@@ -46,13 +46,13 @@ export function initRadarChart(containerSelector) {
 
         svg.append("line")
             .attr("x1", 0).attr("y1", 0).attr("x2", lineEnd[0]).attr("y2", lineEnd[1])
-            .style("stroke", "#e0e0e0").style("stroke-width", "1px");
+            .attr("class", "radar-axis");
 
         // 轴标签文字
         svg.append("text")
             .attr("x", labelPos[0]).attr("y", labelPos[1])
             .attr("text-anchor", "middle").attr("dy", "0.35em")
-            .style("font-size", "12px").style("font-weight", "bold").style("fill", "#34495e")
+            .attr("class", "radar-label")
             .text(f);
     });
 

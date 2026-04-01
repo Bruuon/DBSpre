@@ -10,9 +10,12 @@ export async function fetchCrimeData(view, type) {
     if (view === 'school') endpoint = '/api/analysis/school'; // 新增
     if (view === 'matrix') endpoint = '/api/analysis/matrix';
     if (view === 'radar') endpoint = '/api/analysis/radar';
+    if (view === 'dayType') endpoint = '/api/analysis/day-type';
+    if (view === 'stream') endpoint = '/api/analysis/stream';
 
     try {
-        const url = (view === 'arrest' || view === 'matrix' || view === 'radar') ? endpoint : `${endpoint}?type=${type}`;
+        const url = (view === 'arrest' || view === 'matrix' || view === 'radar' || view === 'dayType' || view === 'stream')
+            ? endpoint : `${endpoint}?type=${type}`;
         const response = await fetch(url);
         const result = await response.json();
 

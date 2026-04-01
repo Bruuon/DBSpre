@@ -24,7 +24,8 @@ export function initHeatmapChart(containerSelector) {
     // 提示：你需要在 index.html 头部额外引入 d3-scale-chromatic：
     // <script src="https://d3js.org/d3-scale-chromatic.v3.min.js"></script>
     // 如果不额外引入，可以使用下面这种手动的渐变范围
-    colorScale = d3.scaleSequential(d3.interpolateYlOrRd);
+    colorScale = d3.scaleLinear()
+        .range(["#FFF4EA", "#ECD5BC", "#C66E52", "#BF4646"]);
 }
 
 export function updateHeatmapChart(data) {
@@ -50,7 +51,7 @@ export function updateHeatmapChart(data) {
 
     // 3. 更新颜色范围的最大值
     const maxCount = d3.max(cleanData, d => d.count);
-    colorScale.domain([0, maxCount]);
+    colorScale.domain([0, maxCount * 0.02, maxCount * 0.08, maxCount * 0.15]);
 
     // 4. 计算网格大小 (0.01度在屏幕上占多少像素)
     const cellWidth = Math.abs(xScale(lonExtent[0] + 0.01) - xScale(lonExtent[0])) * 0.95;
@@ -70,14 +71,12 @@ export function updateHeatmapChart(data) {
         .attr("fill", "#fff")
         .merge(cells)
         .on("mouseover", function(event, d) {
-            d3.select(this).attr("stroke", "#333").attr("stroke-width", 2);
             tooltip.style("opacity", 1)
                 .html(`经度: ${d.lonGrid}<br>纬度: ${d.latGrid}<br>案件数量: ${d.count}`)
                 .style("left", (event.pageX + 15) + "px")
                 .style("top", (event.pageY - 28) + "px");
         })
         .on("mouseout", function() {
-            d3.select(this).attr("stroke", "none");
             tooltip.style("opacity", 0);
         })
         .transition().duration(800)

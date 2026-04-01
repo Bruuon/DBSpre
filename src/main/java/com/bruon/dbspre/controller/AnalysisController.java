@@ -154,12 +154,25 @@ public class AnalysisController {
         return response;
     }
 
-    @GetMapping("/radar")
-    public Map<String, Object> getDistrictRadarProfile() {
+    @GetMapping("/day-type")
+    public Map<String, Object> getDayTypeMatrix() {
         Map<String, Object> response = new HashMap<>();
         try {
             response.put("status", "success");
-            response.put("data", crimeDAO.getDistrictRadarProfile());
+            response.put("data", crimeDAO.getDayTypeMatrix());
+        } catch (Exception e) {
+            response.put("status", "error");
+            response.put("message", "查询失败: " + e.getMessage());
+        }
+        return response;
+    }
+
+    @GetMapping("/stream")
+    public Map<String, Object> getCrimeEvolutionStream() {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            response.put("status", "success");
+            response.put("data", crimeDAO.getCrimeEvolutionStream());
         } catch (Exception e) {
             response.put("status", "error");
             response.put("message", "查询失败: " + e.getMessage());
