@@ -5,16 +5,31 @@ export async function fetchCrimeData(view, type) {
     let endpoint = '/api/analysis/trend';
     if (view === 'weekly') endpoint = '/api/analysis/weekly';
     if (view === 'hourly') endpoint = '/api/analysis/hourly';
-    if (view === 'heatmap') endpoint = '/api/analysis/heatmap'; // 新增热力图路由
-    if (view === 'arrest') endpoint = '/api/analysis/arrest-rate'; // 新增
-    if (view === 'school') endpoint = '/api/analysis/school'; // 新增
+    if (view === 'heatmap') endpoint = '/api/analysis/heatmap';
+    if (view === 'arrest') endpoint = '/api/analysis/arrest-rate';
+    if (view === 'school') endpoint = '/api/analysis/school';
     if (view === 'matrix') endpoint = '/api/analysis/matrix';
     if (view === 'radar') endpoint = '/api/analysis/radar';
     if (view === 'dayType') endpoint = '/api/analysis/day-type';
     if (view === 'stream') endpoint = '/api/analysis/stream';
+    if (view === 'location') endpoint = '/api/analysis/location';
+    if (view === 'severity') endpoint = '/api/analysis/severity';
+    if (view === 'cooling') endpoint = '/api/analysis/cooling-period';
+    if (view === 'arrestGap') endpoint = '/api/analysis/arrest-gap';
+    if (view === 'districtStructure') endpoint = '/api/analysis/district-structure';
+    if (view === 'locationRisk') endpoint = '/api/analysis/location-risk';
+    if (view === 'quadrant') endpoint = '/api/analysis/quadrant';
 
     try {
-        const url = (view === 'arrest' || view === 'matrix' || view === 'radar' || view === 'dayType' || view === 'stream')
+        const url = (view === 'arrest'
+                            || view === 'matrix'
+                            || view === 'radar'
+                            || view === 'dayType'
+                            || view === 'stream'
+                            || view === 'location'
+                            || view === 'severity'
+                            || view === 'districtStructure'
+                            || view === 'locationRisk')
             ? endpoint : `${endpoint}?type=${type}`;
         const response = await fetch(url);
         const result = await response.json();

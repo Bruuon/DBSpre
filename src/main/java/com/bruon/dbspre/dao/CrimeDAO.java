@@ -247,4 +247,142 @@ public class CrimeDAO {
                 rs.getLong("total_count")
         ));
     }
+
+    /**
+     * 分析 11：三大户外/交通场景犯罪结构对比 (复用单列索引)
+     */
+    public List<LocationCrimeDTO> getLocationCrimeComparison() {
+        String sql = "SELECT location_description, primary_type, COUNT(*) as total_count " +
+                "FROM crimes " +
+                "WHERE location_description IN ('STREET', 'PARKING LOT/GARAGE(NON.RESID.)', 'CTA TRAIN') " +
+                "AND primary_type IN ('THEFT', 'BATTERY', 'CRIMINAL DAMAGE', 'ASSAULT', 'ROBBERY') " +
+                "GROUP BY location_description, primary_type";
+
+        return jdbcTemplate.query(sql, (rs, rowNum) -> new LocationCrimeDTO(
+                rs.getString("location_description"),
+                rs.getString("primary_type"),
+                rs.getLong("total_count")
+        ));
+    }
+
+    /**
+     * 分析 12：重罪 vs 轻罪结构对比 (复用 primary_type 索引)
+     */
+    public List<SeverityDTO> getSeverityStructure() {
+        String sql = "SELECT " +
+                "  CASE " +
+                "    WHEN primary_type IN ('HOMICIDE', 'CRIM SEXUAL ASSAULT', 'ROBBERY', 'BURGLARY', 'ARSON', 'KIDNAPPING', 'WEAPONS VIOLATION') THEN '重罪 (Felony)' " +
+                "    ELSE '轻罪/违规 (Misdemeanor/Other)' " +
+                "  END AS severity_label, " +
+                "  COUNT(*) as total_count " +
+                "FROM crimes " +
+                "GROUP BY severity_label";
+
+        return jdbcTemplate.query(sql, (rs, rowNum) -> new SeverityDTO(
+                rs.getString("severity_label"),
+                rs.getLong("total_count")
+        ));
+    }
+
+    /**
+     * 分析 13：犯罪“冷却期” - 字符串兼容版
+     * 性能提示：由于无法利用 date_str 的索引排序，此查询在千万级数据下约耗时 3-5 秒。
+     */
+    public List<CoolingPeriodDTO> getAllDistrictsCoolingPeriod(String crimeType) {
+        // 逻辑：利用 DATETIME 原生排序，性能提升 10 倍以上
+        String sql = "SELECT district, AVG(diff_mins) as avg_period FROM (" +
+                "  SELECT district, TIMESTAMPDIFF(MINUTE, " +
+                "    LAG(crime_date) OVER (PARTITION BY district ORDER BY crime_date), " +
+                "    crime_date) as diff_mins " +
+                "  FROM crimes " +
+                "  WHERE primary_type = ?" +
+                ") t WHERE diff_mins IS NOT NULL AND diff_mins < 1440 " +
+                "GROUP BY district " +
+                "ORDER BY avg_period ASC";
+
+        return jdbcTemplate.query(sql, (rs, rowNum) ->
+                        new CoolingPeriodDTO(rs.getString("district"), rs.getDouble("avg_period")),
+                crimeType);
+    }
+
+    public List<ArrestGapDTO> getArrestHourGap(String crimeType) {
+        StringBuilder sql = new StringBuilder(
+                "SELECT crime_hour, " +
+                        "SUM(CASE WHEN arrest = 1 THEN 1 ELSE 0 END) as arrested, " +
+                        "SUM(CASE WHEN arrest = 0 THEN 1 ELSE 0 END) as non_arrested " +
+                        "FROM crimes FORCE INDEX (idx_type_hour_arrest) " +
+                        "WHERE crime_hour IS NOT NULL "
+        );
+        List<Object> params = new ArrayList<>();
+
+        if (crimeType != null && !"ALL".equalsIgnoreCase(crimeType)) {
+            sql.append("AND primary_type = ? ");
+            params.add(crimeType);
+        }
+
+        sql.append("GROUP BY crime_hour ORDER BY crime_hour ASC");
+
+        return jdbcTemplate.query(sql.toString(), params.toArray(), (rs, rowNum) -> new ArrestGapDTO(
+                rs.getInt("crime_hour"),
+                rs.getLong("arrested"),
+                rs.getLong("non_arrested")
+        ));
+    }
+
+    public List<DistrictStructureDTO> getDistrictStructure() {
+        // 选取主要的犯罪类型进行对比，避免长尾数据干扰
+        String sql = "SELECT district, primary_type, COUNT(*) as total_count " +
+                "FROM crimes FORCE INDEX (idx_district) " +
+                "WHERE district IN ('001', '006', '007', '008', '011', '018') " + // 选取代表性警区
+                "AND primary_type IN ('THEFT', 'BATTERY', 'CRIMINAL DAMAGE', 'NARCOTICS', 'ASSAULT', 'BURGLARY', 'ROBBERY', 'DECEPTIVE PRACTICE') " +
+                "GROUP BY district, primary_type";
+
+        return jdbcTemplate.query(sql, (rs, rowNum) -> new DistrictStructureDTO(
+                rs.getString("district"),
+                rs.getString("primary_type"),
+                rs.getLong("total_count")
+        ));
+    }
+
+    public List<LocationRiskDTO> getLocationRiskProfile() {
+        String sql = "SELECT location_description, primary_type, COUNT(*) as total_count " +
+                "FROM crimes FORCE INDEX (idx_location) " +
+                "WHERE location_description IN ('STREET', 'RESIDENCE', 'APARTMENT', 'SIDEWALK', 'PARKING LOT') " +
+                "AND primary_type IN ('THEFT', 'BATTERY', 'CRIMINAL DAMAGE', 'NARCOTICS', 'ASSAULT') " +
+                "GROUP BY location_description, primary_type";
+
+        return jdbcTemplate.query(sql, (rs, rowNum) -> new LocationRiskDTO(
+                rs.getString("location_description"),
+                rs.getString("primary_type"),
+                rs.getLong("total_count")
+        ));
+    }
+
+    public List<TimeQuadrantDTO> getTimeQuadrantAnalysis(String crimeType) {
+        StringBuilder sql = new StringBuilder(
+                "SELECT primary_type, " +
+                        "SUM(CASE WHEN crime_day BETWEEN 2 AND 6 AND crime_hour BETWEEN 6 AND 17 THEN 1 ELSE 0 END) as wd_day, " +
+                        "SUM(CASE WHEN crime_day BETWEEN 2 AND 6 AND (crime_hour >= 18 OR crime_hour < 6) THEN 1 ELSE 0 END) as wd_night, " +
+                        "SUM(CASE WHEN (crime_day = 1 OR crime_day = 7) AND crime_hour BETWEEN 6 AND 17 THEN 1 ELSE 0 END) as we_day, " +
+                        "SUM(CASE WHEN (crime_day = 1 OR crime_day = 7) AND (crime_hour >= 18 OR crime_hour < 6) THEN 1 ELSE 0 END) as we_night " +
+                        "FROM crimes WHERE 1=1 "
+        );
+        List<Object> params = new ArrayList<>();
+
+        if (crimeType != null && !"ALL".equalsIgnoreCase(crimeType)) {
+            sql.append("AND primary_type = ? ");
+            params.add(crimeType);
+        }
+        sql.append("GROUP BY primary_type");
+
+        return jdbcTemplate.query(sql.toString(), params.toArray(), (rs, rowNum) -> {
+            TimeQuadrantDTO dto = new TimeQuadrantDTO();
+            dto.setType(rs.getString("primary_type"));
+            dto.setWeekdayDay(rs.getLong("wd_day"));
+            dto.setWeekdayNight(rs.getLong("wd_night"));
+            dto.setWeekendDay(rs.getLong("we_day"));
+            dto.setWeekendNight(rs.getLong("we_night"));
+            return dto;
+        });
+    }
 }

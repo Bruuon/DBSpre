@@ -179,4 +179,96 @@ public class AnalysisController {
         }
         return response;
     }
+
+    @GetMapping("/location")
+    public Map<String, Object> getLocationCrimeComparison() {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            response.put("status", "success");
+            response.put("data", crimeDAO.getLocationCrimeComparison());
+        } catch (Exception e) {
+            response.put("status", "error");
+            response.put("message", "查询失败: " + e.getMessage());
+        }
+        return response;
+    }
+
+    @GetMapping("/severity")
+    public Map<String, Object> getSeverityStructure() {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            response.put("status", "success");
+            response.put("data", crimeDAO.getSeverityStructure());
+        } catch (Exception e) {
+            response.put("status", "error");
+            response.put("message", "查询失败: " + e.getMessage());
+        }
+        return response;
+    }
+    @GetMapping("/cooling-period")
+    public Map<String, Object> getCoolingPeriod(@RequestParam String type) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            response.put("status", "success");
+            // type 此时是犯罪类型（如 THEFT）
+            response.put("data", crimeDAO.getAllDistrictsCoolingPeriod(type));
+        } catch (Exception e) {
+            response.put("status", "error");
+            response.put("message", "计算失败: " + e.getMessage());
+        }
+        return response;
+    }
+
+    @GetMapping("/arrest-gap")
+    public Map<String, Object> getArrestHourGap(@RequestParam(defaultValue = "ALL") String type) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            response.put("status", "success");
+            response.put("data", crimeDAO.getArrestHourGap(type));
+            response.put("currentType", type);
+        } catch (Exception e) {
+            response.put("status", "error");
+            response.put("message", "查询失败: " + e.getMessage());
+        }
+        return response;
+    }
+
+    @GetMapping("/district-structure")
+    public Map<String, Object> getDistrictStructure() {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            response.put("status", "success");
+            response.put("data", crimeDAO.getDistrictStructure());
+        } catch (Exception e) {
+            response.put("status", "error");
+            response.put("message", "查询失败: " + e.getMessage());
+        }
+        return response;
+    }
+
+    @GetMapping("/location-risk")
+    public Map<String, Object> getLocationRiskProfile() {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            response.put("status", "success");
+            response.put("data", crimeDAO.getLocationRiskProfile());
+        } catch (Exception e) {
+            response.put("status", "error");
+            response.put("message", "查询失败: " + e.getMessage());
+        }
+        return response;
+    }
+
+    @GetMapping("/quadrant")
+    public Map<String, Object> getTimeQuadrantAnalysis(@RequestParam(defaultValue = "ALL") String type) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            response.put("status", "success");
+            response.put("data", crimeDAO.getTimeQuadrantAnalysis(type));
+        } catch (Exception e) {
+            response.put("status", "error");
+            response.put("message", "查询失败: " + e.getMessage());
+        }
+        return response;
+    }
 }

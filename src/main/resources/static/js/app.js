@@ -4,20 +4,31 @@ import { initTrendChart, updateTrendChart } from './charts/trendChart.js';
 import { initWeeklyChart, updateWeeklyChart } from './charts/weeklyChart.js';
 import { initHourlyChart, updateHourlyChart } from './charts/hourlyChart.js'; // 引入新模块
 import { initHeatmapChart, updateHeatmapChart } from './charts/heatmapChart.js'; // 新增
-import {initArrestChart, updateArrestChart } from "./charts/arrestChart.js";
+import { initArrestChart, updateArrestChart } from "./charts/arrestChart.js";
 import { initSchoolChart, updateSchoolChart } from "./charts/schoolChart.js";
 import { initMatrixChart, updateMatrixChart } from './charts/matrixChart.js';
 import { initRadarChart, updateRadarChart } from './charts/radarChart.js';
 import { initDayTypeChart, updateDayTypeChart } from './charts/dayTypeChart.js';
 import { initStreamChart, updateStreamChart } from './charts/streamChart.js';
+import { initLocationChart, updateLocationChart } from './charts/locationChart.js';
+import { initSeverityChart, updateSeverityChart } from './charts/severityChart.js';
+import { initCoolingChart, updateCoolingChart } from './charts/coolingChart.js';
+import { initArrestGapChart, updateArrestGapChart } from './charts/arrestGapChart.js';
+import { initDistStructChart, updateDistStructChart } from './charts/distStructChart.js';
+import { initLocRiskChart, updateLocRiskChart } from './charts/locRiskChart.js';
+import { initQuadrantChart, updateQuadrantChart } from './charts/quadrantChart.js';
 
 // 全局状态管理
 let currentView = 'trend';
-let cachedArrestData = null; // 【优化 1】新增全局缓存变量
+let cachedArrestData = null;
 let cachedMatrixData = null;
 let cachedRadarData = null;
 let cachedDayTypeData = null;
 let cachedStreamData = null;
+let cachedLocationData = null;
+let cachedSeverityData = null;
+let cachedDistStructData = null;
+let cachedLocRiskData = null;
 
 // 统一的视图渲染调度器
 async function renderCurrentView() {
@@ -37,7 +48,14 @@ async function renderCurrentView() {
         'matrix': `7. 芝加哥犯罪时空深度画像 (气泡大小=案发量，颜色=逮捕率)`,
         'radar': `8. 芝加哥典型警区犯罪基因画像 (商业区 vs 高危区 vs 夜生活区)`,
         'dayType': `9. 工作日 vs 周末犯罪分布画像 (颜色深浅=案发强度)`,
-        'stream': `10. 芝加哥宏观犯罪生态演变史 (河流图)`
+        'stream': `10. 芝加哥宏观犯罪生态演变史 (河流图)`,
+        'location': `11. 街道 / 停车场 / 交通站点 犯罪结构画像对比`,
+        'severity': `12. 芝加哥整体治安风险等级构成 (重罪 vs 轻罪比例)`,
+        'cooling': `13. 全城警区治安压力排行 - ${selectedType} (平均发案间隔)`,
+        'arrestGap': `14. 逮捕 vs 未逮捕案件 24 小时分布差异 (${selectedType})`,
+        'districtStructure': '15. 典型警区犯罪基因画像对比 (百分比堆叠视角)',
+        'locationRisk': '16. 典型地点场景犯罪风险画像对比',
+        'quadrant': `17. 工作日 vs 周末 / 白天 vs 夜间 叠加规律 (${selectedType})`,
     };
     titleObj.innerText = titleMap[currentView];
 
@@ -80,8 +98,36 @@ async function renderCurrentView() {
             cachedStreamData = await fetchCrimeData('stream', 'ALL');
         }
         data = cachedStreamData;
+    } else if (currentView === 'location') {
+        if (!cachedLocationData) {
+            chartArea.style.opacity = 0.3;
+            loadingSpinner.style.display = "block";
+            cachedLocationData = await fetchCrimeData('location', 'ALL');
+        }
+        data = cachedLocationData;
+    } else if (currentView === 'severity') {
+        if (!cachedSeverityData) {
+            chartArea.style.opacity = 0.3;
+            loadingSpinner.style.display = "block";
+            cachedSeverityData = await fetchCrimeData('severity', 'ALL');
+        }
+        data = cachedSeverityData;
+    } else if (currentView === 'districtStructure') {
+        if (!cachedDistStructData) {
+            chartArea.style.opacity = 0.3;
+            loadingSpinner.style.display = "block";
+            cachedDistStructData = await fetchCrimeData('districtStructure', 'ALL');
+        }
+        data = cachedDistStructData;
+    } else if (currentView === 'locationRisk') {
+        if (!cachedLocRiskData) {
+            chartArea.style.opacity = 0.3;
+            loadingSpinner.style.display = "block";
+            cachedLocRiskData = await fetchCrimeData('locationRisk', 'ALL');
+        }
+        data = cachedLocRiskData;
     } else {
-        // 其他视图：每次都显示 Loading 并发起网络请求
+        // 动态切片视图：每次都显示 Loading 并发起网络请求
         chartArea.style.opacity = 0.3;
         loadingSpinner.style.display = "block";
         data = await fetchCrimeData(currentView, selectedType);
@@ -102,6 +148,14 @@ async function renderCurrentView() {
     else if (currentView === 'radar') updateRadarChart(data);
     else if (currentView === 'dayType') updateDayTypeChart(data);
     else if (currentView === 'stream') updateStreamChart(data);
+    else if (currentView === 'location') updateLocationChart(data);
+    else if (currentView === 'severity') updateSeverityChart(data);
+    else if (currentView === 'cooling') updateCoolingChart(data);
+    else if (currentView === 'arrestGap') updateArrestGapChart(data);
+    else if (currentView === 'districtStructure') updateDistStructChart(data);
+    else if (currentView === 'locationRisk') updateLocRiskChart(data);
+    else if (currentView === 'quadrant') updateQuadrantChart(data);
+
 }
 
 // 页面初始化
@@ -146,6 +200,13 @@ document.addEventListener('DOMContentLoaded', () => {
         else if (currentView === 'radar') initRadarChart("#chart-area");
         else if (currentView === 'dayType') initDayTypeChart("#chart-area");
         else if (currentView === 'stream') initStreamChart("#chart-area");
+        else if (currentView === 'location') initLocationChart("#chart-area");
+        else if (currentView === 'severity') initSeverityChart("#chart-area");
+        else if (currentView === 'cooling') initCoolingChart("#chart-area");
+        else if (currentView === 'arrestGap') initArrestGapChart("#chart-area");
+        else if (currentView === 'districtStructure') initDistStructChart("#chart-area");
+        else if (currentView === 'locationRisk') initLocRiskChart("#chart-area");
+        else if (currentView === 'quadrant') initQuadrantChart("#chart-area");
 
         // 渲染数据
         renderCurrentView();
