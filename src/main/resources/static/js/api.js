@@ -29,7 +29,8 @@ export async function fetchCrimeData(view, type) {
                             || view === 'location'
                             || view === 'severity'
                             || view === 'districtStructure'
-                            || view === 'locationRisk')
+                            || view === 'locationRisk'
+                            || view === 'quadrant')
             ? endpoint : `${endpoint}?type=${type}`;
         const response = await fetch(url);
         const result = await response.json();

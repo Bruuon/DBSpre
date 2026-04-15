@@ -285,23 +285,16 @@ public class CrimeDAO {
     }
 
     /**
-     * 分析 13：犯罪“冷却期” - 字符串兼容版
-     * 性能提示：由于无法利用 date_str 的索引排序，此查询在千万级数据下约耗时 3-5 秒。
+     * 分析 13：犯罪“冷却期” - 缓存优化版
+     * 性能提示：直接读取统计结果表，响应时间 < 1ms。
      */
     public List<CoolingPeriodDTO> getAllDistrictsCoolingPeriod(String crimeType) {
-        // 逻辑：利用 DATETIME 原生排序，性能提升 10 倍以上
-        String sql = "SELECT district, AVG(diff_mins) as avg_period FROM (" +
-                "  SELECT district, TIMESTAMPDIFF(MINUTE, " +
-                "    LAG(crime_date) OVER (PARTITION BY district ORDER BY crime_date), " +
-                "    crime_date) as diff_mins " +
-                "  FROM crimes " +
-                "  WHERE primary_type = ?" +
-                ") t WHERE diff_mins IS NOT NULL AND diff_mins < 1440 " +
-                "GROUP BY district " +
-                "ORDER BY avg_period ASC";
+        String sql = "SELECT district, avg_minutes FROM stats_cooling_period " +
+                "WHERE crime_type = ? " +
+                "ORDER BY avg_minutes ASC";
 
         return jdbcTemplate.query(sql, (rs, rowNum) ->
-                        new CoolingPeriodDTO(rs.getString("district"), rs.getDouble("avg_period")),
+                        new CoolingPeriodDTO(rs.getString("district"), rs.getDouble("avg_minutes")),
                 crimeType);
     }
 
@@ -330,10 +323,10 @@ public class CrimeDAO {
     }
 
     public List<DistrictStructureDTO> getDistrictStructure() {
-        // 选取主要的犯罪类型进行对比，避免长尾数据干扰
+        // 强制使用新建的复合覆盖索引 idx_district_type
         String sql = "SELECT district, primary_type, COUNT(*) as total_count " +
-                "FROM crimes FORCE INDEX (idx_district) " +
-                "WHERE district IN ('001', '006', '007', '008', '011', '018') " + // 选取代表性警区
+                "FROM crimes FORCE INDEX (idx_district_type) " +
+                "WHERE district IN ('001', '006', '007', '008', '011', '018') " +
                 "AND primary_type IN ('THEFT', 'BATTERY', 'CRIMINAL DAMAGE', 'NARCOTICS', 'ASSAULT', 'BURGLARY', 'ROBBERY', 'DECEPTIVE PRACTICE') " +
                 "GROUP BY district, primary_type";
 
@@ -346,7 +339,7 @@ public class CrimeDAO {
 
     public List<LocationRiskDTO> getLocationRiskProfile() {
         String sql = "SELECT location_description, primary_type, COUNT(*) as total_count " +
-                "FROM crimes FORCE INDEX (idx_location) " +
+                "FROM crimes FORCE INDEX (idx_loc_type) " +
                 "WHERE location_description IN ('STREET', 'RESIDENCE', 'APARTMENT', 'SIDEWALK', 'PARKING LOT') " +
                 "AND primary_type IN ('THEFT', 'BATTERY', 'CRIMINAL DAMAGE', 'NARCOTICS', 'ASSAULT') " +
                 "GROUP BY location_description, primary_type";
@@ -358,24 +351,21 @@ public class CrimeDAO {
         ));
     }
 
-    public List<TimeQuadrantDTO> getTimeQuadrantAnalysis(String crimeType) {
-        StringBuilder sql = new StringBuilder(
-                "SELECT primary_type, " +
-                        "SUM(CASE WHEN crime_day BETWEEN 2 AND 6 AND crime_hour BETWEEN 6 AND 17 THEN 1 ELSE 0 END) as wd_day, " +
-                        "SUM(CASE WHEN crime_day BETWEEN 2 AND 6 AND (crime_hour >= 18 OR crime_hour < 6) THEN 1 ELSE 0 END) as wd_night, " +
-                        "SUM(CASE WHEN (crime_day = 1 OR crime_day = 7) AND crime_hour BETWEEN 6 AND 17 THEN 1 ELSE 0 END) as we_day, " +
-                        "SUM(CASE WHEN (crime_day = 1 OR crime_day = 7) AND (crime_hour >= 18 OR crime_hour < 6) THEN 1 ELSE 0 END) as we_night " +
-                        "FROM crimes WHERE 1=1 "
-        );
-        List<Object> params = new ArrayList<>();
+    public List<TimeQuadrantDTO> getTimeQuadrantAnalysis() {
+        String sql = "SELECT " +
+                "  primary_type, " +
+                "  SUM(CASE WHEN crime_day BETWEEN 2 AND 6 AND crime_hour BETWEEN 6 AND 17 THEN type_count ELSE 0 END) AS wd_day, " +
+                "  SUM(CASE WHEN crime_day BETWEEN 2 AND 6 AND (crime_hour >= 18 OR crime_hour < 6) THEN type_count ELSE 0 END) AS wd_night, " +
+                "  SUM(CASE WHEN (crime_day = 1 OR crime_day = 7) AND crime_hour BETWEEN 6 AND 17 THEN type_count ELSE 0 END) AS we_day, " +
+                "  SUM(CASE WHEN (crime_day = 1 OR crime_day = 7) AND (crime_hour >= 18 OR crime_hour < 6) THEN type_count ELSE 0 END) AS we_night " +
+                "FROM ( " +
+                "  SELECT primary_type, crime_day, crime_hour, COUNT(*) as type_count " +
+                "  FROM crimes FORCE INDEX (idx_type_day_hour) " +
+                "  WHERE primary_type IN ('THEFT', 'BATTERY', 'CRIMINAL DAMAGE', 'NARCOTICS', 'ASSAULT', 'BURGLARY', 'ROBBERY', 'DECEPTIVE PRACTICE') " +
+                "  GROUP BY primary_type, crime_day, crime_hour " +
+                ") t GROUP BY primary_type";
 
-        if (crimeType != null && !"ALL".equalsIgnoreCase(crimeType)) {
-            sql.append("AND primary_type = ? ");
-            params.add(crimeType);
-        }
-        sql.append("GROUP BY primary_type");
-
-        return jdbcTemplate.query(sql.toString(), params.toArray(), (rs, rowNum) -> {
+        return jdbcTemplate.query(sql, (rs, rowNum) -> {
             TimeQuadrantDTO dto = new TimeQuadrantDTO();
             dto.setType(rs.getString("primary_type"));
             dto.setWeekdayDay(rs.getLong("wd_day"));

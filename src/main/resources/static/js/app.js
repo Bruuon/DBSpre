@@ -29,6 +29,7 @@ let cachedLocationData = null;
 let cachedSeverityData = null;
 let cachedDistStructData = null;
 let cachedLocRiskData = null;
+let cachedQuadrantData = null;
 
 // 统一的视图渲染调度器
 async function renderCurrentView() {
@@ -55,7 +56,7 @@ async function renderCurrentView() {
         'arrestGap': `14. 逮捕 vs 未逮捕案件 24 小时分布差异 (${selectedType})`,
         'districtStructure': '15. 典型警区犯罪基因画像对比 (百分比堆叠视角)',
         'locationRisk': '16. 典型地点场景犯罪风险画像对比',
-        'quadrant': `17. 工作日 vs 周末 / 白天 vs 夜间 叠加规律 (${selectedType})`,
+        'quadrant': '7. 工作日 vs 周末 / 白天 vs 夜间 犯罪叠加效应深度画像',
     };
     titleObj.innerText = titleMap[currentView];
 
@@ -126,10 +127,17 @@ async function renderCurrentView() {
             cachedLocRiskData = await fetchCrimeData('locationRisk', 'ALL');
         }
         data = cachedLocRiskData;
+    } else if (currentView === 'quadrant') {
+        if (!cachedQuadrantData) {
+            chartArea.style.opacity = 0.3;
+            loadingSpinner.style.display = "block";
+            cachedQuadrantData = await fetchCrimeData('quadrant', 'ALL');
+        }
+        data = cachedQuadrantData;
     } else {
         // 动态切片视图：每次都显示 Loading 并发起网络请求
-        chartArea.style.opacity = 0.3;
-        loadingSpinner.style.display = "block";
+        // chartArea.style.opacity = 0.3;
+        // loadingSpinner.style.display = "block";
         data = await fetchCrimeData(currentView, selectedType);
     }
 

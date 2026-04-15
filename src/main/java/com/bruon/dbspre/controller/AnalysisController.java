@@ -260,11 +260,11 @@ public class AnalysisController {
     }
 
     @GetMapping("/quadrant")
-    public Map<String, Object> getTimeQuadrantAnalysis(@RequestParam(defaultValue = "ALL") String type) {
+    public Map<String, Object> getTimeQuadrantAnalysis() {
         Map<String, Object> response = new HashMap<>();
         try {
             response.put("status", "success");
-            response.put("data", crimeDAO.getTimeQuadrantAnalysis(type));
+            response.put("data", crimeDAO.getTimeQuadrantAnalysis());
         } catch (Exception e) {
             response.put("status", "error");
             response.put("message", "查询失败: " + e.getMessage());
